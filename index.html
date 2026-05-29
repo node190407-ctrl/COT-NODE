@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cotizador AI Automático</title>
+    <meta content="#0B1220" name="theme-color" />
+    <link rel="stylesheet" href="cotizador.css">
+    
+    <!-- SheetJS CDN para leer Excel -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    
+    <!-- Iconos Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+</head>
+<body class="ai-theme">
+    
+    <!-- OVERLAY SELECCION DE MODO -->
+    <div id="modeSelectionOverlay" class="mode-selection-overlay">
+        <div class="mode-card glass-panel">
+            <h2>Bienvenido al Sistema de Cotización NODE</h2>
+            <p>Selecciona tu modo de operación para continuar:</p>
+            <div class="mode-buttons">
+                <button id="btnModeManual" class="cyber-btn">Modo Manual</button>
+                <button id="btnModeAI" class="cyber-btn ai-glow"><i class="ph-fill ph-sparkle"></i> Modo Automático (IA)</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- HEADER CON VIDEO -->
+    <header class="video-header">
+        <video autoplay muted loop playsinline class="bg-video" id="bgVideo">
+            <!-- Video específico de la carpeta -->
+            <source src="Video_HD_con_Movimiento_Tipo_GIF.mp4" type="video/mp4" id="videoSource">
+        </video>
+        <div class="video-overlay"></div>
+        <div class="header-content">
+            <div class="ai-badge">Powered by AI <i class="ph-fill ph-sparkle"></i></div>
+            <h1 class="glitch" data-text="Terminal de Cotización Automática">Terminal de Cotización Automática</h1>
+            <p>Sistema avanzado de procesamiento y análisis para catálogos inteligentes.</p>
+        </div>
+    </header>
+
+    <main class="dashboard">
+        <!-- ESPACIO DE TRABAJO -->
+        <section class="workspace glass-panel" id="workspace">
+            
+            <div class="workspace-header">
+                <div class="stats">
+                    <div class="stat-item">
+                        <i class="ph ph-database"></i> <span id="recordCount">0</span> Productos
+                    </div>
+                    <div class="stat-item ai-status">
+                        <i class="ph ph-pulse"></i> Engine AI Activo
+                    </div>
+                </div>
+                <!-- Barra de búsqueda inteligente -->
+                <div class="ai-search-bar">
+                    <i class="ph ph-magnifying-glass"></i>
+                    <input type="text" id="aiSearch" placeholder="Consulta inteligente (ej. busca por nombre o palabra clave)...">
+                    <button id="clearSearch" class="clear-btn"><i class="ph ph-x"></i></button>
+                </div>
+            </div>
+
+            <div class="workspace-grid">
+                
+                <!-- CATÁLOGO -->
+                <div class="catalog-area">
+                    <h3 id="catalogTitle">Catálogo Disponible</h3>
+                    
+                    <!-- AI MODE INPUT -->
+                    <div id="aiPromptArea" class="ai-prompt-area hidden">
+                        <textarea id="aiPromptInput" class="cyber-input" placeholder="Describe lo que necesitas cotizar. Ejemplo: 'Necesito armar una sala de juntas elegante con 8 sillas y mesa con presupuesto moderado'" rows="4"></textarea>
+                        <button id="btnGenerateAI" class="cyber-btn full-width mt-4"><i class="ph ph-magic-wand"></i> Generar Cotización con IA</button>
+                        <div id="aiThinkingStatus" class="ai-analysis-indicator hidden" style="margin-top:15px; justify-content:center;">
+                            <div class="spinner"></div> IA estructurando cotización automáticamente...
+                        </div>
+                    </div>
+
+                    <div class="ai-analysis-indicator hidden" id="aiIndicator">
+                        <div class="spinner"></div> Analizando intención de búsqueda...
+                    </div>
+                    <div class="catalog-list" id="catalogList">
+                        <!-- Items dinámicos -->
+                    </div>
+                </div>
+
+                <!-- COTIZADOR (CARRITO) -->
+                <div class="quote-sidebar glass-panel">
+                    
+                    <!-- Controladores y Cliente -->
+                    <div class="sidebar-top">
+                        <div class="currency-toggle" id="currencyToggle">
+                            <span class="curr-label active" data-curr="MXN">MXN</span>
+                            <div class="switch">
+                                <div class="slider" id="currSlider"></div>
+                            </div>
+                            <span class="curr-label" data-curr="USD">USD</span>
+                        </div>
+                    </div>
+
+                    <div class="client-form">
+                        <input type="text" id="clientName" placeholder="Nombre del Cliente..." class="cyber-input">
+                        <input type="text" id="clientCompany" placeholder="Empresa (Opcional)" class="cyber-input">
+                        <input type="text" id="authorName" placeholder="Elaborado por..." class="cyber-input">
+                    </div>
+
+                    <div class="quote-header">
+                        <h3><i class="ph ph-calculator"></i> Cotización Actual</h3>
+                        <div style="display:flex; gap:10px;">
+                            <button id="exportQuote" class="cyber-btn sm hidden">Exportar PDF</button>
+                            <button id="exportWpp" class="cyber-btn sm hidden" style="background:rgba(37,211,102,0.2); border-color:#25D366; color:#25D366;"><i class="ph ph-whatsapp-logo"></i> Enviar WPP</button>
+                        </div>
+                    </div>
+                    
+                    <div class="quote-items" id="quoteItems">
+                        <div class="empty-quote">No hay productos en la cotización</div>
+                    </div>
+                    
+                    <div class="quote-summary hidden" id="quoteSummary">
+                        <div class="summary-row">
+                            <span>Subtotal</span>
+                            <span id="subtotalVal">$0.00</span>
+                        </div>
+                        <div class="summary-row">
+                            <span>IVA (16%)</span>
+                            <span id="taxVal">$0.00</span>
+                        </div>
+                        <div class="summary-row total">
+                            <span>Total Estimado</span>
+                            <span id="totalVal" class="neon-text">$0.00</span>
+                        </div>
+                        <button class="cyber-btn full-width mt-4" id="finalizeQuote">Procesar Cotización <i class="ph ph-caret-right"></i></button>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+    </main>
+
+    <!-- Modal AI -->
+    <div class="ai-modal hidden" id="aiModal">
+        <div class="modal-glass">
+            <h3 class="neon-text"><i class="ph ph-cpu"></i> Red Neural Procesando</h3>
+            <div class="progress-bar"><div class="progress"></div></div>
+            <p id="aiModalText">Estructurando matriz de datos y leyendo archivo excel local...</p>
+        </div>
+    </div>
+
+    <!-- jsPDF para exportar -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    
+    <script src="cotizador.js"></script>
+</body>
+</html>
