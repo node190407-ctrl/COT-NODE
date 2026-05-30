@@ -138,7 +138,7 @@ function renderCatalog(items) {
         const card = document.createElement('div');
         card.className = 'product-card';
         card.innerHTML = `
-            <span class="prod-code">${item.id}</span>
+            
             <div class="prod-name">${item.name}</div>
             <div class="prod-price">${formatCurrency(item.price)}</div>
             <button class="add-btn" onclick="addToQuote('${item.id}')">
@@ -487,7 +487,7 @@ function generatePDF() {
     });
 
     doc.autoTable({
-        head: [["ID", "Producto / Servicio", "P. Unitario", "Cant.", "Total"]],
+        head: [["ID", "Producto", "P. Unitario", "Cant.", "Total"]],
         body: tableRows,
         startY: Y,
         margin: { left: MARGIN, right: MARGIN },
@@ -741,7 +741,7 @@ Nada de explicaciones. Si no encuentras, devuelve [].`;
                 const card = document.createElement('div');
                 card.className = 'product-card';
                 card.innerHTML = `
-                    <span class="prod-code" style="color:#00ff88; margin-bottom: 5px; display:inline-block;"><i class="ph-fill ph-check-circle"></i> Result IA</span>
+                    
                     <div class="prod-name" style="margin-top:5px;">${item.name}</div>
                     <div class="prod-price">${formatCurrency(item.price)}</div>
                     <button class="add-btn" onclick="addToQuote('${item.id}')">
